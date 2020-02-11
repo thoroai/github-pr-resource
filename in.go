@@ -24,7 +24,7 @@ func Get(request GetRequest, github Github, git Git, outputDir string) (*GetResp
 	if err := git.Init(pull.BaseRefName); err != nil {
 		return nil, err
 	}
-	if err := git.Pull(pull.Repository.URL, pull.BaseRefName, request.Params.GitDepth); err != nil {
+	if err := git.Pull(pull.Repository.URL, pull.BaseRefName, request.Params.GitDepth, request.Params.Submodules); err != nil {
 		return nil, err
 	}
 
@@ -35,7 +35,7 @@ func Get(request GetRequest, github Github, git Git, outputDir string) (*GetResp
 	}
 
 	// Fetch the PR and merge the specified commit into the base
-	if err := git.Fetch(pull.Repository.URL, pull.Number, request.Params.GitDepth); err != nil {
+	if err := git.Fetch(pull.Repository.URL, pull.Number, request.Params.GitDepth, request.Params.Submodules); err != nil {
 		return nil, err
 	}
 
@@ -131,6 +131,7 @@ type GetParameters struct {
 	SkipDownload     bool   `json:"skip_download"`
 	IntegrationTool  string `json:"integration_tool"`
 	GitDepth         int    `json:"git_depth"`
+	Submodules       bool   `json:"submodules"`
 	ListChangedFiles bool   `json:"list_changed_files"`
 }
 

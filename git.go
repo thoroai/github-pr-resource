@@ -17,9 +17,9 @@ import (
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o fakes/fake_git.go . Git
 type Git interface {
 	Init(string) error
-	Pull(string, string, int) error
+	Pull(string, string, int, bool) error
 	RevParse(string) (string, error)
-	Fetch(string, int, int) error
+	Fetch(string, int, int, bool) error
 	Checkout(string, string) error
 	Merge(string) error
 	Rebase(string, string) error
@@ -50,6 +50,10 @@ func (g *GitClient) command(name string, arg ...string) *exec.Cmd {
 	cmd.Dir = g.Directory
 	cmd.Stdout = g.Output
 	cmd.Stderr = g.Output
+	cmd.Env = os.Environ()
+	cmd.Env = append(cmd.Env,
+		"X_OAUTH_BASIC_TOKEN="+g.AccessToken,
+		"GIT_ASKPASS=/usr/local/bin/askpass.sh")
 	return cmd
 }
 
@@ -67,11 +71,17 @@ func (g *GitClient) Init(branch string) error {
 	if err := g.command("git", "config", "user.email", "concourse@local").Run(); err != nil {
 		return fmt.Errorf("failed to configure git email: %s", err)
 	}
+	if err := g.command("git", "config", "--global", "url.https://x-oauth-basic@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
+		return fmt.Errorf("failed to configure github url: %s", err)
+	}
+	if err := g.command("git", "config", "--global", "url.https://.insteadOf", "git://").Run(); err != nil {
+		return fmt.Errorf("failed to configure github url: %s", err)
+	}
 	return nil
 }
 
 // Pull ...
-func (g *GitClient) Pull(uri, branch string, depth int) error {
+func (g *GitClient) Pull(uri, branch string, depth int, submodules bool) error {
 	endpoint, err := g.Endpoint(uri)
 	if err != nil {
 		return err
@@ -81,6 +91,9 @@ func (g *GitClient) Pull(uri, branch string, depth int) error {
 	if depth > 0 {
 		args = append(args, "--depth", strconv.Itoa(depth))
 	}
+	if submodules {
+		args = append(args, "--recurse-submodules")
+	}
 	cmd := g.command("git", args...)
 
 	// Discard output to have zero chance of logging the access token.
@@ -88,7 +101,13 @@ func (g *GitClient) Pull(uri, branch string, depth int) error {
 	cmd.Stderr = ioutil.Discard
 
 	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("clone failed: %s", err)
+		return fmt.Errorf("pull failed: %s", cmd)
+	}
+	if submodules {
+		submodulesGet := g.command("git", "submodule", "update", "--init", "--recursive")
+		if err := submodulesGet.Run(); err != nil {
+			return fmt.Errorf("submodule update failed: %s", err)
+		}
 	}
 	return nil
 }
@@ -105,7 +124,7 @@ func (g *GitClient) RevParse(branch string) (string, error) {
 }
 
 // Fetch ...
-func (g *GitClient) Fetch(uri string, prNumber int, depth int) error {
+func (g *GitClient) Fetch(uri string, prNumber int, depth int, submodules bool) error {
 	endpoint, err := g.Endpoint(uri)
 	if err != nil {
 		return err
@@ -114,6 +133,9 @@ func (g *GitClient) Fetch(uri string, prNumber int, depth int) error {
 	args := []string{"fetch", endpoint, fmt.Sprintf("pull/%s/head", strconv.Itoa(prNumber))}
 	if depth > 0 {
 		args = append(args, "--depth", strconv.Itoa(depth))
+	}
+	if submodules {
+		args = append(args, "--recurse-submodules")
 	}
 	cmd := g.command("git", args...)
 

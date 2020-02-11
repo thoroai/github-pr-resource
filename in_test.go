@@ -210,10 +210,11 @@ func TestGet(t *testing.T) {
 			}
 
 			if assert.Equal(t, 1, git.PullCallCount()) {
-				url, base, depth := git.PullArgsForCall(0)
+				url, base, depth, submodules := git.PullArgsForCall(0)
 				assert.Equal(t, tc.pullRequest.Repository.URL, url)
 				assert.Equal(t, tc.pullRequest.BaseRefName, base)
 				assert.Equal(t, tc.parameters.GitDepth, depth)
+				assert.Equal(t, tc.parameters.Submodules, submodules)
 			}
 
 			if assert.Equal(t, 1, git.RevParseCallCount()) {
@@ -222,10 +223,11 @@ func TestGet(t *testing.T) {
 			}
 
 			if assert.Equal(t, 1, git.FetchCallCount()) {
-				url, pr, depth := git.FetchArgsForCall(0)
+				url, pr, depth, submodules := git.FetchArgsForCall(0)
 				assert.Equal(t, tc.pullRequest.Repository.URL, url)
 				assert.Equal(t, tc.pullRequest.Number, pr)
 				assert.Equal(t, tc.parameters.GitDepth, depth)
+				assert.Equal(t, tc.parameters.Submodules, submodules)
 			}
 
 			switch tc.parameters.IntegrationTool {
