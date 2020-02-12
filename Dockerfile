@@ -21,4 +21,4 @@ COPY --from=gobuilder /go/src/github.com/telia-oss/github-pr-resource/build /opt
 
 RUN chmod +x /opt/resource/*
 
-LABEL MAINTAINER=carnegierobotics
+LABEL MAINTAINER=telia-oss
