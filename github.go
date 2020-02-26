@@ -163,7 +163,7 @@ func (m *GithubClient) ListOpenPullRequests() ([]*PullRequest, error) {
 					Tip:                 c.Node.Commit,
 					ApprovedReviewCount: p.Node.Reviews.TotalCount,
 					Labels:              labels,
-					HasStatus:           c.Node.Commit.StatusObject.StatusContextObject.Context == (*githubv4.String)(nil),
+					HasStatus:           !(c.Node.Commit.Status.Context.Context == nil),
 				})
 			}
 		}
