@@ -34,6 +34,7 @@ Make sure to check out [#migrating](#migrating) to learn more.
 | `git_crypt_key`             | No       | `AEdJVENSWVBUS0VZAAAAA...`       | Base64 encoded git-crypt key. Setting this will unlock / decrypt the repository with git-crypt. To get the key simply execute `git-crypt export-key -- - | base64` in an encrypted repository.                                                                                             |
 | `base_branch`               | No       | `master`                         | Name of a branch. The pipeline will only trigger on pull requests against the specified branch.                                                                                                                                                                                            |
 | `labels`                    | No       | `["bug", "enhancement"]`         | The labels on the PR. The pipeline will only trigger on pull requests having at least one of the specified labels.                                                                                                                                                                         |
+| `status_context`            | No       | `concourse-ci/build`             | Filter out PRs that contain the status context on their latest SHA |
 
 Notes:
  - If `v3_endpoint` is set, `v4_endpoint` must also be set (and the other way around).

@@ -40,7 +40,7 @@ func TestGet(t *testing.T) {
 				CommittedDate: time.Time{},
 			},
 			parameters:     resource.GetParameters{},
-			pullRequest:    createTestPR(1, "master", false, false, 0, nil),
+			pullRequest:    createTestPR(1, "master", false, false, 0, nil, false),
 			versionString:  `{"pr":"pr1","commit":"commit1","committed":"0001-01-01T00:00:00Z"}`,
 			metadataString: `[{"name":"pr","value":"1"},{"name":"title","value":"pr1 title"},{"name":"url","value":"pr1 url"},{"name":"head_name","value":"pr1"},{"name":"head_sha","value":"oid1"},{"name":"base_name","value":"master"},{"name":"base_sha","value":"sha"},{"name":"message","value":"commit message1"},{"name":"author","value":"login1"},{"name":"author_email","value":"user@example.com"}]`,
 		},
@@ -57,7 +57,7 @@ func TestGet(t *testing.T) {
 				CommittedDate: time.Time{},
 			},
 			parameters:     resource.GetParameters{},
-			pullRequest:    createTestPR(1, "master", false, false, 0, nil),
+			pullRequest:    createTestPR(1, "master", false, false, 0, nil, false),
 			versionString:  `{"pr":"pr1","commit":"commit1","committed":"0001-01-01T00:00:00Z"}`,
 			metadataString: `[{"name":"pr","value":"1"},{"name":"title","value":"pr1 title"},{"name":"url","value":"pr1 url"},{"name":"head_name","value":"pr1"},{"name":"head_sha","value":"oid1"},{"name":"base_name","value":"master"},{"name":"base_sha","value":"sha"},{"name":"message","value":"commit message1"},{"name":"author","value":"login1"},{"name":"author_email","value":"user@example.com"}]`,
 		},
@@ -75,7 +75,7 @@ func TestGet(t *testing.T) {
 			parameters: resource.GetParameters{
 				IntegrationTool: "rebase",
 			},
-			pullRequest:    createTestPR(1, "master", false, false, 0, nil),
+			pullRequest:    createTestPR(1, "master", false, false, 0, nil, false),
 			versionString:  `{"pr":"pr1","commit":"commit1","committed":"0001-01-01T00:00:00Z"}`,
 			metadataString: `[{"name":"pr","value":"1"},{"name":"title","value":"pr1 title"},{"name":"url","value":"pr1 url"},{"name":"head_name","value":"pr1"},{"name":"head_sha","value":"oid1"},{"name":"base_name","value":"master"},{"name":"base_sha","value":"sha"},{"name":"message","value":"commit message1"},{"name":"author","value":"login1"},{"name":"author_email","value":"user@example.com"}]`,
 		},
@@ -93,7 +93,7 @@ func TestGet(t *testing.T) {
 			parameters: resource.GetParameters{
 				IntegrationTool: "checkout",
 			},
-			pullRequest:    createTestPR(1, "master", false, false, 0, nil),
+			pullRequest:    createTestPR(1, "master", false, false, 0, nil, false),
 			versionString:  `{"pr":"pr1","commit":"commit1","committed":"0001-01-01T00:00:00Z"}`,
 			metadataString: `[{"name":"pr","value":"1"},{"name":"title","value":"pr1 title"},{"name":"url","value":"pr1 url"},{"name":"head_name","value":"pr1"},{"name":"head_sha","value":"oid1"},{"name":"base_name","value":"master"},{"name":"base_sha","value":"sha"},{"name":"message","value":"commit message1"},{"name":"author","value":"login1"},{"name":"author_email","value":"user@example.com"}]`,
 		},
@@ -111,7 +111,7 @@ func TestGet(t *testing.T) {
 			parameters: resource.GetParameters{
 				GitDepth: 2,
 			},
-			pullRequest:    createTestPR(1, "master", false, false, 0, nil),
+			pullRequest:    createTestPR(1, "master", false, false, 0, nil, false),
 			versionString:  `{"pr":"pr1","commit":"commit1","committed":"0001-01-01T00:00:00Z"}`,
 			metadataString: `[{"name":"pr","value":"1"},{"name":"title","value":"pr1 title"},{"name":"url","value":"pr1 url"},{"name":"head_name","value":"pr1"},{"name":"head_sha","value":"oid1"},{"name":"base_name","value":"master"},{"name":"base_sha","value":"sha"},{"name":"message","value":"commit message1"},{"name":"author","value":"login1"},{"name":"author_email","value":"user@example.com"}]`,
 		},
@@ -129,7 +129,7 @@ func TestGet(t *testing.T) {
 			parameters: resource.GetParameters{
 				ListChangedFiles: true,
 			},
-			pullRequest: createTestPR(1, "master", false, false, 0, nil),
+			pullRequest: createTestPR(1, "master", false, false, 0, nil, false),
 			files: []resource.ChangedFileObject{
 				{
 					Path: "README.md",
@@ -312,6 +312,7 @@ func createTestPR(
 	isCrossRepo bool,
 	approvedReviews int,
 	labels []string,
+	hasStatus bool,
 ) *resource.PullRequest {
 	n := strconv.Itoa(count)
 	d := time.Now().AddDate(0, 0, -count)
@@ -360,6 +361,7 @@ func createTestPR(
 		},
 		ApprovedReviewCount: approvedCount,
 		Labels:              labelObjects,
+		HasStatus:           hasStatus,
 	}
 }
 
