@@ -10,15 +10,15 @@ import (
 
 var (
 	testPullRequests = []*resource.PullRequest{
-		createTestPR(1, "master", true, false, 0, nil),
-		createTestPR(2, "master", false, false, 0, nil),
-		createTestPR(3, "master", false, false, 0, nil),
-		createTestPR(4, "master", false, false, 0, nil),
-		createTestPR(5, "master", false, true, 0, nil),
-		createTestPR(6, "master", false, false, 0, nil),
-		createTestPR(7, "develop", false, false, 0, []string{"enhancement"}),
-		createTestPR(8, "master", false, false, 1, []string{"wontfix"}),
-		createTestPR(9, "master", false, false, 0, nil),
+		createTestPR(1, "master", true, false, 0, nil, false),
+		createTestPR(2, "master", false, false, 0, nil, true),
+		createTestPR(3, "master", false, false, 0, nil, false),
+		createTestPR(4, "master", false, false, 0, nil, true),
+		createTestPR(5, "master", false, true, 0, nil, false),
+		createTestPR(6, "master", false, false, 0, nil, false),
+		createTestPR(7, "develop", false, false, 0, []string{"enhancement"}, true),
+		createTestPR(8, "master", false, false, 1, []string{"wontfix"}, true),
+		createTestPR(9, "master", false, false, 0, nil, false),
 	}
 )
 
@@ -183,6 +183,24 @@ func TestCheck(t *testing.T) {
 			files:        [][]string{},
 			expected: resource.CheckResponse{
 				resource.NewVersion(testPullRequests[6]),
+			},
+		},
+
+		{
+			description: "check returns versions with no status",
+			source: resource.Source{
+				Repository:    "itsdalmo/test-repository",
+				AccessToken:   "oauthtoken",
+				StatusContext: "some-status",
+			},
+			version:      resource.NewVersion(testPullRequests[8]),
+			pullRequests: testPullRequests,
+			files:        [][]string{},
+			expected: resource.CheckResponse{
+				resource.NewVersion(testPullRequests[8]),
+				resource.NewVersion(testPullRequests[5]),
+				resource.NewVersion(testPullRequests[4]),
+				resource.NewVersion(testPullRequests[2]),
 			},
 		},
 	}

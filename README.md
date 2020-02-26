@@ -34,6 +34,7 @@ Make sure to check out [#migrating](#migrating) to learn more.
 | `git_crypt_key`             | No       | `AEdJVENSWVBUS0VZAAAAA...`       | Base64 encoded git-crypt key. Setting this will unlock / decrypt the repository with git-crypt. To get the key simply execute `git-crypt export-key -- - | base64` in an encrypted repository.                                                                                             |
 | `base_branch`               | No       | `master`                         | Name of a branch. The pipeline will only trigger on pull requests against the specified branch.                                                                                                                                                                                            |
 | `labels`                    | No       | `["bug", "enhancement"]`         | The labels on the PR. The pipeline will only trigger on pull requests having at least one of the specified labels.                                                                                                                                                                         |
+| `status_context`            | No       | `concourse-ci/build`             | Filter out PRs that contain the status context on their latest SHA |
 
 Notes:
  - If `v3_endpoint` is set, `v4_endpoint` must also be set (and the other way around).
@@ -80,7 +81,7 @@ requested version and the metadata emitted by `get` are available to your tasks 
 - `.git/resource/changed_files` (if enabled by `list_changed_files`)
 
 The information in `metadata.json` is also available as individual files in the `.git/resource` directory, e.g. the `base_sha`
-is available as `.git/resource/base_sha`. For a complete list of available (individual) metadata files, please check the code 
+is available as `.git/resource/base_sha`. For a complete list of available (individual) metadata files, please check the code
 [here](https://github.com/telia-oss/github-pr-resource/blob/master/in.go#L66).
 
 When specifying `skip_download` the pull request volume mounted to subsequent tasks will be empty, which is a problem
