@@ -20,9 +20,9 @@ type Git interface {
 	Pull(string, string, int, bool) error
 	RevParse(string) (string, error)
 	Fetch(string, int, int, bool) error
-	Checkout(string, string) error
-	Merge(string) error
-	Rebase(string, string) error
+	Checkout(string, string, bool) error
+	Merge(string, bool) error
+	Rebase(string, string, bool) error
 	GitCryptUnlock(string) error
 }
 
@@ -150,27 +150,47 @@ func (g *GitClient) Fetch(uri string, prNumber int, depth int, submodules bool) 
 }
 
 // CheckOut
-func (g *GitClient) Checkout(branch, sha string) error {
+func (g *GitClient) Checkout(branch, sha string, submodules bool) error {
 	if err := g.command("git", "checkout", "-b", branch, sha).Run(); err != nil {
 		return fmt.Errorf("checkout failed: %s", err)
+	}
+
+	if submodules {
+		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--checkout").Run(); err != nil {
+			return fmt.Errorf("submodule update failed: %s", err)
+		}
 	}
 
 	return nil
 }
 
 // Merge ...
-func (g *GitClient) Merge(sha string) error {
+func (g *GitClient) Merge(sha string, submodules bool) error {
 	if err := g.command("git", "merge", sha, "--no-stat").Run(); err != nil {
 		return fmt.Errorf("merge failed: %s", err)
 	}
+
+	if submodules {
+		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--merge").Run(); err != nil {
+			return fmt.Errorf("submodule update failed: %s", err)
+		}
+	}
+
 	return nil
 }
 
 // Rebase ...
-func (g *GitClient) Rebase(baseRef string, headSha string) error {
+func (g *GitClient) Rebase(baseRef string, headSha string, submodules bool) error {
 	if err := g.command("git", "rebase", baseRef, headSha).Run(); err != nil {
 		return fmt.Errorf("rebase failed: %s", err)
 	}
+
+	if submodules {
+		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--rebase").Run(); err != nil {
+			return fmt.Errorf("submodule update failed: %s", err)
+		}
+	}
+
 	return nil
 }
 

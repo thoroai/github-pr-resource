@@ -41,15 +41,15 @@ func Get(request GetRequest, github Github, git Git, outputDir string) (*GetResp
 
 	switch tool := request.Params.IntegrationTool; tool {
 	case "rebase":
-		if err := git.Rebase(pull.BaseRefName, pull.Tip.OID); err != nil {
+		if err := git.Rebase(pull.BaseRefName, pull.Tip.OID, request.Params.Submodules); err != nil {
 			return nil, err
 		}
 	case "merge", "":
-		if err := git.Merge(pull.Tip.OID); err != nil {
+		if err := git.Merge(pull.Tip.OID, request.Params.Submodules); err != nil {
 			return nil, err
 		}
 	case "checkout":
-		if err := git.Checkout(pull.HeadRefName, pull.Tip.OID); err != nil {
+		if err := git.Checkout(pull.HeadRefName, pull.Tip.OID, request.Params.Submodules); err != nil {
 			return nil, err
 		}
 	default:

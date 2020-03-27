@@ -233,20 +233,23 @@ func TestGet(t *testing.T) {
 			switch tc.parameters.IntegrationTool {
 			case "rebase":
 				if assert.Equal(t, 1, git.RebaseCallCount()) {
-					branch, tip := git.RebaseArgsForCall(0)
+					branch, tip, submodules := git.RebaseArgsForCall(0)
 					assert.Equal(t, tc.pullRequest.BaseRefName, branch)
 					assert.Equal(t, tc.pullRequest.Tip.OID, tip)
+					assert.Equal(t, tc.parameters.Submodules, submodules)
 				}
 			case "checkout":
 				if assert.Equal(t, 1, git.CheckoutCallCount()) {
-					branch, sha := git.CheckoutArgsForCall(0)
+					branch, sha, submodules := git.CheckoutArgsForCall(0)
 					assert.Equal(t, tc.pullRequest.HeadRefName, branch)
 					assert.Equal(t, tc.pullRequest.Tip.OID, sha)
+					assert.Equal(t, tc.parameters.Submodules, submodules)
 				}
 			default:
 				if assert.Equal(t, 1, git.MergeCallCount()) {
-					tip := git.MergeArgsForCall(0)
+					tip, submodules := git.MergeArgsForCall(0)
 					assert.Equal(t, tc.pullRequest.Tip.OID, tip)
+					assert.Equal(t, tc.parameters.Submodules, submodules)
 				}
 			}
 			if tc.source.GitCryptKey != "" {
