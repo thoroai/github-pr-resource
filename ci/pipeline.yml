@@ -1,0 +1,60 @@
+---
+resources:
+- name: repo
+  type: git
+  source:
+    uri: https://github.com/thoroai/github-pr-resource.git
+    branch: feat/ci_regression_check
+
+- name: docker-image
+  type: registry-image
+  source:
+    repository: crl-docker.jfrog.io/carnegierobotics/github-pr-resource-regression
+    username: ((artifactory_registry_user))
+    password: ((artifactory_registry_token))
+
+- name: repo-version
+  type: semver
+  source:
+    driver: git
+    initial_version: 0.0.0
+    uri: git@github.com:thoroai/github-pr-resource.git
+    branch: regression-version
+    file: repo/version
+    private_key: ((github-pr-resource-deploy-key))
+
+jobs:
+- name: build-docker-image
+  serial: true
+  plan:
+  - get: repo
+    trigger: true
+  - task: build
+    privileged: true
+    config:
+      platform: linux
+      # Use OCI builder -- now standard according to Concourse's
+      # registry-image resource docs. See:
+      # https://github.com/concourse/registry-image-resource#out-push-an-image-up-to-the-registry-under-the-given-tags
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      params:
+        DOCKERFILE: Dockerfile
+      inputs:
+        - name: repo
+          path: .
+      outputs:
+        - name: image
+      run:
+        path: build
+      caches:
+        - path: cache
+  - put: repo-version
+    params:
+      bump: minor
+  - put: docker-image
+    params:
+      additional_tags: repo-version/version
+      image: image/image.tar
