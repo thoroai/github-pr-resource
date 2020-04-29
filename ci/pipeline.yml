@@ -1,0 +1,46 @@
+---
+resources:
+- name: repo
+  type: git
+  source:
+    uri: https://github.com/thoroai/github-pr-resource.git
+    branch: feat/ci
+
+- name: docker-image
+  type: registry-image
+  source:
+    repository: crl-docker.jfrog.io/carnegierobotics/github-pr-resource
+    username: ((artifactory_registry_user))
+    password: ((artifactory_registry_token))
+
+jobs:
+- name: build-docker-image
+  serial: true
+  plan:
+  - get: repo
+    trigger: true
+  - task: build
+    privileged: true
+    config:
+      platform: linux
+      # Use OCI builder -- now standard according to Concourse's
+      # registry-image resource docs. See:
+      # https://github.com/concourse/registry-image-resource#out-push-an-image-up-to-the-registry-under-the-given-tags
+      image_resource:
+        type: registry-image
+        source:
+          repository: vito/oci-build-task
+      params:
+        DOCKERFILE: Dockerfile
+      inputs:
+        - name: repo
+          path: .
+      outputs:
+        - name: image
+      run:
+        path: build
+      caches:
+        - path: cache
+  - put: docker-image
+    params:
+      image: image/image.tar
