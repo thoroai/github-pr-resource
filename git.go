@@ -60,6 +60,11 @@ func (g *GitClient) command(name string, arg ...string) *exec.Cmd {
 	return cmd
 }
 
+func (g *GitClient) submoduleUpdateCommand(arg ...string) *exec.Cmd {
+	s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:", "submodule", "update", "--init", "--recursive"}
+	return g.command("git", append(s, arg...)...)
+}
+
 // Init ...
 func (g *GitClient) Init(branch string) error {
 	if err := g.command("git", "init").Run(); err != nil {
@@ -74,10 +79,7 @@ func (g *GitClient) Init(branch string) error {
 	if err := g.command("git", "config", "user.email", "concourse@local").Run(); err != nil {
 		return fmt.Errorf("failed to configure git email: %s", err)
 	}
-	if err := g.command("git", "config", "--global", "url.https://x-oauth-basic@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
-		return fmt.Errorf("failed to configure github url: %s", err)
-	}
-	if err := g.command("git", "config", "--global", "url.https://.insteadOf", "git://").Run(); err != nil {
+	if err := g.command("git", "config", "url.https://x-oauth-basic@github.com/.insteadOf", "git@github.com:").Run(); err != nil {
 		return fmt.Errorf("failed to configure github url: %s", err)
 	}
 	return nil
@@ -104,6 +106,12 @@ func (g *GitClient) Pull(uri, branch string, depth int, submodules bool, fetchTa
 	if submodules {
 		args = append(args, "--recurse-submodules")
 	}
+
+	// This must be prepended to the command if submodules are pulled
+	if submodules {
+		s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:"}
+		args = append(s, args...)
+	}
 	cmd := g.command("git", args...)
 
 	// Discard output to have zero chance of logging the access token.
@@ -114,8 +122,7 @@ func (g *GitClient) Pull(uri, branch string, depth int, submodules bool, fetchTa
 		return fmt.Errorf("pull failed: %s", cmd)
 	}
 	if submodules {
-		submodulesGet := g.command("git", "submodule", "update", "--init", "--recursive")
-		if err := submodulesGet.Run(); err != nil {
+		if err := g.submoduleUpdateCommand().Run(); err != nil {
 			return fmt.Errorf("submodule update failed: %s", err)
 		}
 	}
@@ -147,6 +154,12 @@ func (g *GitClient) Fetch(uri string, prNumber int, depth int, submodules bool) 
 	if submodules {
 		args = append(args, "--recurse-submodules")
 	}
+
+	// This must be prepended to the command if submodules are fetched
+	if submodules {
+		s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:"}
+		args = append(s, args...)
+	}
 	cmd := g.command("git", args...)
 
 	// Discard output to have zero chance of logging the access token.
@@ -166,7 +179,7 @@ func (g *GitClient) Checkout(branch, sha string, submodules bool) error {
 	}
 
 	if submodules {
-		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--checkout").Run(); err != nil {
+		if err := g.submoduleUpdateCommand("--checkout").Run(); err != nil {
 			return fmt.Errorf("submodule update failed: %s", err)
 		}
 	}
@@ -181,7 +194,7 @@ func (g *GitClient) Merge(sha string, submodules bool) error {
 	}
 
 	if submodules {
-		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--merge").Run(); err != nil {
+		if err := g.submoduleUpdateCommand("--merge").Run(); err != nil {
 			return fmt.Errorf("submodule update failed: %s", err)
 		}
 	}
@@ -196,7 +209,7 @@ func (g *GitClient) Rebase(baseRef string, headSha string, submodules bool) erro
 	}
 
 	if submodules {
-		if err := g.command("git", "submodule", "update", "--init", "--recursive", "--rebase").Run(); err != nil {
+		if err := g.submoduleUpdateCommand("--rebase").Run(); err != nil {
 			return fmt.Errorf("submodule update failed: %s", err)
 		}
 	}
