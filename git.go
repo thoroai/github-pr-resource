@@ -60,8 +60,12 @@ func (g *GitClient) command(name string, arg ...string) *exec.Cmd {
 	return cmd
 }
 
+func getConfigParams() []string {
+	return []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:"}
+}
+
 func (g *GitClient) submoduleUpdateCommand(arg ...string) *exec.Cmd {
-	s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:", "submodule", "update", "--init", "--recursive"}
+	s := append(getConfigParams(), "submodule", "update", "--init", "--recursive")
 	return g.command("git", append(s, arg...)...)
 }
 
@@ -106,8 +110,7 @@ func (g *GitClient) Pull(uri, branch string, depth int, submodules bool) error {
 
 	// This must be prepended to the command if submodules are pulled
 	if submodules {
-		s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:"}
-		args = append(s, args...)
+		args = append(getConfigParams(), args...)
 	}
 	cmd := g.command("git", args...)
 
@@ -154,8 +157,7 @@ func (g *GitClient) Fetch(uri string, prNumber int, depth int, submodules bool) 
 
 	// This must be prepended to the command if submodules are fetched
 	if submodules {
-		s := []string{"-c", "url.https://x-oauth-basic@github.com/.insteadOf=git@github.com:"}
-		args = append(s, args...)
+		args = append(getConfigParams(), args...)
 	}
 	cmd := g.command("git", args...)
 
