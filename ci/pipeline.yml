@@ -10,8 +10,8 @@ resources:
   type: registry-image
   source:
     repository: crl-docker.jfrog.io/carnegierobotics/github-pr-resource
-    username: ((artifactory_registry_user))
-    password: ((artifactory_registry_token))
+    username: ((writer-artifactory-user))
+    password: ((writer-artifactory-token))
 
 jobs:
 - name: build-docker-image
